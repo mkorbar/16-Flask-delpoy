@@ -12,4 +12,18 @@
     <br>
     <br>
     <p>....in še več</p>
+
+<h2>Contact me ...</h2>
+<form method="post" action="/o-meni">
+    {% if uname %}
+    <input class="form-control" type="text" name="name" placeholder="What's your name?" value="{{uname}}">
+    {% else %}
+    <input class="form-control" type="text" name="name" placeholder="What's your name?">
+    {% endif %}
+    <br>
+    <input class="form-control" type="email" name="email" placeholder="your email here ...">
+    <br>
+    <textarea class="form-control" name="message" placeholder="your message here"></textarea>
+    <button class="btn btn-primary mt-3" type="submit">Send this message</button>
+</form>
 {% endblock %}
