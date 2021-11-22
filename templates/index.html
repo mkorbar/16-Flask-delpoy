@@ -2,6 +2,9 @@
 
 
 {% block content %}
+{% if message %}
+<p class="alert alert-info">{{message}}</p>
+{% endif %}
     <h1>Dobrodošli na mojo stran</h1>
     <a href="/o-meni">Moja zgodovina</a>
 {% endblock %}
