@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Play the guessing game</h1>
+
+{% if message %}
+    {% if err %}
+    <p class="alert alert-danger">{{message}}</p>
+    {% else %}
+    <p class="alert alert-success">{{message}}</p>
+    {% endif %}
+{% endif %}
+    <form method="post" action="/game">
+        <label for="numberGuess">Guess the number</label>
+        <input class="form-control" id="numberGuess" type="number" name="numberGuess" min="0" max="30">
+        <button class="btn btn-primary mt-3" type="submit">Take a guess</button>
+    </form>
+{% endblock %}
