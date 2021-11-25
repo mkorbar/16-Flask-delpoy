@@ -2,6 +2,9 @@
 
 {% block content %}
     <h1>Play the guessing game</h1>
+{% if user %}
+    <small>You're playing as {{user.name}}</small>
+{% endif %}
 
 {% if message %}
     {% if err %}

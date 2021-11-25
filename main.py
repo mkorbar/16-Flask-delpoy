@@ -1,6 +1,9 @@
+import datetime
 import os
 import random
 import hashlib
+import uuid
+
 from flask import Flask, render_template, request, make_response, redirect
 from flask_sqlalchemy import SQLAlchemy
 
@@ -17,6 +20,7 @@ class User(db.Model):
     name = db.Column(db.String, unique=False)
     password = db.Column(db.String, unique=False)
     secret_num = db.Column(db.Integer, unique=False)
+    session_token = db.Column(db.String, unique=True)
 
 
 db.create_all()
@@ -67,8 +71,8 @@ def login():
             # v bazi shranjujemo hashed-gesla, ne clear-text
             hashed_pass = hashlib.sha256(password.encode()).hexdigest()
             user = User(email=email, name=name, password=hashed_pass)
-            db.session.add(user)
-            db.session.commit()
+            create_new_secret_number_for_user(user)
+            message = f'Created a new user {user.name}'
         else:
             # ali se geslo iz baze ujema z geslom iz prijavnega obrazca
             if user.password != hashlib.sha256(password.encode()).hexdigest():
@@ -76,9 +80,14 @@ def login():
             # ali se uporabnisko ime iz baze ujema z uporabniskim imenom iz prijavnega obrazca
             if user.name != name:
                 return render_template('index.html', message='Error logging you in, wrong user name')
+            message = f'Logged in as {user.name}'
+        #create a new session id and save it to the DB
+        user.session_token = str(uuid.uuid4())
+        db.session.add(user)
+        db.session.commit()
 
-        response = make_response(render_template('index.html', message='You were successfully logged in'))
-        response.set_cookie('user_email', email)
+        response = make_response(render_template('index.html', message=message))
+        response.set_cookie('user_token', user.session_token, expires=(datetime.datetime.now() + datetime.timedelta(weeks=1)))
         return response
 
 
@@ -92,15 +101,16 @@ def create_new_secret_number_for_user(user):
 @app.route('/game', methods=['GET', 'POST'])
 def guessing_game():
 
-    user_email = request.cookies.get('user_email')
-    if not user_email:
+    user_token = request.cookies.get('user_token')
+    print(user_token)
+    if not user_token:
         return redirect('/login')
     else:
-        user = User.query.filter_by(email=user_email).first()
+        user = User.query.filter_by(session_token=user_token).first()
 
     if request.method == 'GET':
         secret_number = user.secret_num
-        response = make_response(render_template('game.html'))
+        response = make_response(render_template('game.html', user=user))
         if not secret_number:
             create_new_secret_number_for_user(user)
         return response
@@ -111,16 +121,16 @@ def guessing_game():
 
         if guess == secret_number:
             message = "Correct! The secret number is {0}".format(str(secret_number))
-            response = make_response(render_template("game.html", message=message, err=False))
+            response = make_response(render_template("game.html", message=message, err=False, user=user))
 
             create_new_secret_number_for_user(user)
             return response
         elif guess > secret_number:
             message = "Your guess is not correct... try something smaller."
-            return render_template("game.html", message=message, err=True)
+            return render_template("game.html", message=message, err=True, user=user)
         elif guess < secret_number:
             message = "Your guess is not correct... try something bigger."
-            return render_template("game.html", message=message, err=True)
+            return render_template("game.html", message=message, err=True, user=user)
 
 
 if __name__ == '__main__':
