@@ -82,6 +82,13 @@ def login():
         return response
 
 
+def create_new_secret_number_for_user(user):
+        # save new secret number to db
+        user.secret_num = random.randint(1, 30)
+        db.session.add(user)
+        db.session.commit()
+
+
 @app.route('/game', methods=['GET', 'POST'])
 def guessing_game():
 
@@ -95,10 +102,7 @@ def guessing_game():
         secret_number = user.secret_num
         response = make_response(render_template('game.html'))
         if not secret_number:
-            secret_number = random.randint(1, 30)
-            user.secret_num = secret_number
-            db.session.add(user)
-            db.session.commit()
+            create_new_secret_number_for_user(user)
         return response
     elif request.method == 'POST':
 
@@ -108,10 +112,8 @@ def guessing_game():
         if guess == secret_number:
             message = "Correct! The secret number is {0}".format(str(secret_number))
             response = make_response(render_template("game.html", message=message, err=False))
-            # save new secret number to db
-            user.secret_num = random.randint(1, 30)
-            db.session.add(user)
-            db.session.commit()
+
+            create_new_secret_number_for_user(user)
             return response
         elif guess > secret_number:
             message = "Your guess is not correct... try something smaller."
