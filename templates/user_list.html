@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+
+{% block title %}
+Moja stran
+{% endblock %}
+
+{% block content %}
+
+<h1>List all users</h1>
+
+<table class="table">
+    <tr>
+        <th>Id</th>
+        <th>Name</th>
+        <th>Email</th>
+    </tr>
+
+    {% for user in users %}
+    <tr>
+        <td>{{ user.id }}</td>
+        <td><a href="/user/{{ user.id }}">{{ user.name }}</a></td>
+        <td>{{ user.email }}</td>
+    </tr>
+    {% endfor %}
+
+</table>
+
+{% endblock %}
+

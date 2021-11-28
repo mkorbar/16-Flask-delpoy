@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+
+{% block title %}
+Moja stran
+{% endblock %}
+
+{% block content %}
+
+<h1>Confirm profile deletion</h1>
+<form action="/user/delete" method="post">
+    <button class="btn btn-danger">Delete account</button>
+</form>
+<a href="/" class="btn btn-primary">Keep account</a>
+
+{% endblock %}
+

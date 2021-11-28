@@ -55,6 +55,45 @@ def portfolio():
     return render_template('portfolio.html')
 
 
+@app.route('/user/')
+@app.route('/user/<user_id>')
+def user(user_id=None):
+    if not user_id:
+        user = User.query.filter_by(session_token=request.cookies.get('user_token')).first()
+    else:
+        user = User.query.filter_by(id=user_id).first()
+    return render_template('user_profile.html', user_data=user)
+
+
+@app.route('/user/edit', methods=['GET', 'POST'])
+def user_edit():
+    user = User.query.filter_by(session_token=request.cookies.get('user_token')).first()
+    if request.method == 'GET':
+        return render_template('user_edit.html', user_data=user)
+    elif request.method == 'POST':
+        user.name = request.form.get('name')
+        db.session.add(user)
+        db.session.commit()
+        return render_template('user_profile.html', user_data=user)
+
+
+@app.route('/user/delete', methods=['GET', 'POST'])
+def user_delete():
+    if request.method == 'GET':
+        return render_template('user_delete.html')
+    else:
+        user = User.query.filter_by(session_token=request.cookies.get('user_token')).first()
+        db.session.delete(user)
+        db.session.commit()
+        return redirect('/')
+
+
+@app.route('/user/list')
+def user_list():
+    all_users = User.query.all()
+    return render_template('user_list.html', users=all_users)
+
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'GET':

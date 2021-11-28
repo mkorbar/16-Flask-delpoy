@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+
+{% block title %}
+Moja stran
+{% endblock %}
+
+{% block content %}
+
+<h1>Edit user profile</h1>
+
+<form action="/user/edit" method="post">
+    <label for="name">Name</label>
+    <input class="form-control" id="name" name="name" type="text" value="{{user_data.name}}">
+    <label for="email">Email</label>
+    <input class="form-control" id="email" name="email" type="email" value="{{user_data.email}}" disabled>
+    <button class="btn btn-primary" type="submit">Save</button>
+</form>
+
+
+<p>Name: {{ user_data.name }}</p>
+<p>Email: {{ user_data.email }}</p>
+
+{% endblock %}
+
