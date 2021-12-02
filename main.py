@@ -4,8 +4,15 @@ import random
 import hashlib
 import uuid
 
+import requests as requests
 from flask import Flask, render_template, request, make_response, redirect
 from flask_sqlalchemy import SQLAlchemy
+
+try:
+    import secrets
+except ImportError:
+    # predvidevamo, da nismo v lokalnem okolju
+    pass
 
 app = Flask(__name__)
 
@@ -25,9 +32,16 @@ class User(db.Model):
 
 db.create_all()
 
+
 @app.route("/")
 def index():
-    return render_template('index.html')
+    city = 'Postojna'
+    api_key = os.getenv('OWM_API_KEY')
+
+    data = requests.get(f'http://api.openweathermap.org/data/2.5/weather?q={city}&appid={api_key}&units=metric')
+    weather_data = data.json()
+
+    return render_template('index.html', temperature=weather_data['main']['temp'], city=weather_data['name'])
 
 
 @app.route("/o-meni", methods=['GET', 'POST'])
@@ -120,26 +134,26 @@ def login():
             if user.name != name:
                 return render_template('index.html', message='Error logging you in, wrong user name')
             message = f'Logged in as {user.name}'
-        #create a new session id and save it to the DB
+        # create a new session id and save it to the DB
         user.session_token = str(uuid.uuid4())
         db.session.add(user)
         db.session.commit()
 
         response = make_response(render_template('index.html', message=message))
-        response.set_cookie('user_token', user.session_token, expires=(datetime.datetime.now() + datetime.timedelta(weeks=1)))
+        response.set_cookie('user_token', user.session_token,
+                            expires=(datetime.datetime.now() + datetime.timedelta(weeks=1)))
         return response
 
 
 def create_new_secret_number_for_user(user):
-        # save new secret number to db
-        user.secret_num = random.randint(1, 30)
-        db.session.add(user)
-        db.session.commit()
+    # save new secret number to db
+    user.secret_num = random.randint(1, 30)
+    db.session.add(user)
+    db.session.commit()
 
 
 @app.route('/game', methods=['GET', 'POST'])
 def guessing_game():
-
     user_token = request.cookies.get('user_token')
     print(user_token)
     if not user_token:
